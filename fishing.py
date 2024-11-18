@@ -1,20 +1,20 @@
-from PIL import ImageOps, ImageEnhance
-from pytesseract import image_to_string
+from PIL import Image, ImageOps, ImageEnhance
 from pyautogui import press, sleep, typewrite, screenshot as pyautogui_screenshot
 from threading import Thread
 from pygetwindow import getActiveWindow
 from constants import coordinates, colors
 import state
-from pygetwindow import getActiveWindow
-from re import findall
+from re import findall, sub
+from easyocr import Reader
+import numpy as np
 
 fishes_items_coordinates = {
-    'fish_1': (1161, 938),
-    'fish_2': (1161, 997),
+    'fish_1': (1198, 911),
+    'fish_2': (1198, 980),
 }
 
-fish_number_width = 22
-fish_number_height = 14
+fish_number_width = 24
+fish_number_height = 20
 
 fishing_rod_slot = 'num8'
 fishing_loops = 0
@@ -23,6 +23,8 @@ save_on_fishes_count = 48
 fishes_caught_postsave = 0
 fishes_caught_presave = 0
 max_possible_fishes = 0
+
+reader = Reader(['en'])
 
 def is_color_matching(screenshot, coord, color):
     return screenshot.getpixel(coord) == color
@@ -53,13 +55,22 @@ def toggle_fishing():
 
 def extract_text_from_roi(x, y, width, height, i):
     screenshot = pyautogui_screenshot(region=(x, y, width, height))
-    processed_image = screenshot.point(lambda p: 255 if p > 160 else 0)
-    gray_image = ImageOps.grayscale(processed_image)
+    resized_image = screenshot.resize((width * 2, height * 2), Image.Resampling.LANCZOS)
+    image_np = np.array(resized_image)
+    white_threshold = 200
+    black_threshold = 50
+    mask = ((image_np[:, :, 0] > white_threshold) & (image_np[:, :, 1] > white_threshold) & (image_np[:, :, 2] > white_threshold)) | \
+           ((image_np[:, :, 0] < black_threshold) & (image_np[:, :, 1] < black_threshold) & (image_np[:, :, 2] < black_threshold))
+    filtered_image_np = np.zeros_like(image_np)
+    filtered_image_np[mask] = image_np[mask]
+    filtered_image = Image.fromarray(filtered_image_np)
+    gray_image = ImageOps.grayscale(filtered_image)
     enhancer = ImageEnhance.Contrast(gray_image)
     enhanced_image = enhancer.enhance(2)
-    custom_config = r'--oem 3 --psm 6 outputbase digits'
-    text = image_to_string(enhanced_image, config=custom_config)
-    return text
+    binarized_image = enhanced_image.point(lambda p: 255 if p > 160 else 0)
+    image_np = np.array(binarized_image)
+    result = reader.readtext(image_np)
+    return " ".join([text for (_, text, _) in result])
 
 def parse_numbers_from_text(text):
     digits = findall(r'\d+', text)
@@ -73,7 +84,7 @@ def click_fishing_rod():
 
 def is_hotbar_slot_black():
     screenshot = pyautogui_screenshot()
-    hotbar_slot_coord = (1331, 896)
+    hotbar_slot_coord = (1400, 860)
     black_color = (0, 0, 0)
     return is_color_matching(screenshot, hotbar_slot_coord, black_color)
 

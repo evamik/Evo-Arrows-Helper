@@ -1,4 +1,7 @@
+__pycache__/
 build/
 dist/
 main.spec
 Evo Arrow Helper.spec
+Evo Arrows Helper/
+Evo Arrows Helper.zip

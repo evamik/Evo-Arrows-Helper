@@ -4,3 +4,4 @@ numpy
 pyautogui
 pygetwindow
 easyocr
+pywin32

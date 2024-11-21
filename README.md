@@ -27,6 +27,7 @@ Overlay in-game
     - It can be buggy if enabled while already fishing.
     - The fishing counter only counts fishes in slot 1 (Numpad 7) and slot 3 (Numpad 4) for the auto-saving feature to drop fishes.
   - **Usage**: Hold the fishing rod in slot 2 (Numpad 8) while fishing.
+  - **Reset Fishing Counter**: Press `Ctrl+F3` in the Fishing Menu to reset the fishing counter.
   - **Fishing Modes**: Press `Ctrl+F4` in the Fishing Menu to toggle between different fishing modes:
     - Only Perfect
     - Perfect+No Flying Wish Fish (default)
@@ -39,11 +40,10 @@ Overlay in-game
     - 20
     - 30
     - Disabled
+  - **Set Respawn Point**: Press `Ctrl+F6` in the Fishing Menu to set the respawn point based on the current mouse position. This is used for running back to the same location where you were fishing. Set the respawn location using the mouse on the minimap.
 - **IMP2 Arrows Evade**:
   - **Navigate to IMP2 Menu**: Press `Ctrl+F2` from the Main Menu to navigate to the IMP2 Menu.
   - **Enable IMP2 Arrows Evade**: Press `Ctrl+F1` in the IMP2 Menu to enable or disable IMP2 arrows evasion.
-- **Fishing Counter Reset**:
-  - **Reset Fishing Counter**: Press `Ctrl+F3` in the Fishing Menu to reset the fishing counter.
 
 ## Menu Navigation
 
@@ -56,6 +56,7 @@ Overlay in-game
   - Press `Ctrl+F3` to reset the fishing counter.
   - Press `Ctrl+F4` to toggle fishing modes.
   - Press `Ctrl+F5` to toggle save on fishes count.
+  - Press `Ctrl+F6` to set the respawn point.
 - **IMP2 Menu**:
   - Press `Ctrl+F1` to toggle IMP2 arrows evasion.
   - Press `Ctrl+F2` to navigate back to the Main Menu.

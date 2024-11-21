@@ -1,42 +1,43 @@
 @echo off
-REM Compile all Python files to .pyc
-python -m compileall .
+setlocal enabledelayedexpansion
 
-REM Create the dist directory if it doesn't exist
-if not exist dist (
-    mkdir dist
-)
+set SOURCE_DIR=%cd%
+set BUILD_DIR=%cd%\built_project
+set TEMP_DIR=%cd%\Evo Arrows Helper
 
-REM Move and rename all .pyc files to the dist directory
-for /r %%f in (*.cpython-*.pyc) do (
-    set "filename=%%~nf"
-    setlocal enabledelayedexpansion
-    set "filename=!filename:.cpython-312=!"
-    move "%%f" "dist\!filename!.pyc"
-    endlocal
-)
-
-REM Create a temporary directory for the zip structure
-if not exist temp_zip (
-    mkdir temp_zip
-)
-
-REM Copy start.bat and requirements.txt to the temporary directory
-copy start.bat temp_zip
-copy requirements.txt temp_zip
-
-REM Move the dist directory to the temporary directory
-move dist temp_zip
-
-REM Delete the existing zip file if it exists
 if exist "Evo Arrows Helper.zip" (
     del "Evo Arrows Helper.zip"
 )
 
-REM Compress the temp_zip folder into a zip file using PowerShell
-powershell -Command "Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::CreateFromDirectory('temp_zip', 'Evo Arrows Helper.zip')"
+if exist "%BUILD_DIR%" (
+    rmdir /S /Q "%BUILD_DIR%"
+)
 
-REM Clean up the temporary directory
-rmdir /S /Q temp_zip
+mkdir "%BUILD_DIR%"
+
+python -m compileall -b -f "%SOURCE_DIR%"
+
+for /R "%SOURCE_DIR%" %%F in (*.pyc) do (
+    if not "%%~dpF"=="%BUILD_DIR%\" if /I not "%%~xF"==".zip" (
+        set "REL_PATH=%%~dpF"
+        set "REL_PATH=!REL_PATH:%SOURCE_DIR%=!"
+        if "!REL_PATH:~0,1!" == "\" set "REL_PATH=!REL_PATH:~1!"
+        if not exist "%BUILD_DIR%\!REL_PATH!" mkdir "%BUILD_DIR%\!REL_PATH!"
+        move "%%F" "%BUILD_DIR%\!REL_PATH!"
+    )
+)
+
+if not exist "%TEMP_DIR%" mkdir "%TEMP_DIR%"
+
+copy start.bat "%TEMP_DIR%"
+copy requirements.txt "%TEMP_DIR%"
+copy README.md "%TEMP_DIR%"
+
+move "%BUILD_DIR%" "%TEMP_DIR%\dist"
+
+powershell -Command "Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::CreateFromDirectory('Evo Arrows Helper', 'Evo Arrows Helper.zip')"
+
+rmdir /S /Q "Evo Arrows Helper"
 
 echo Build complete: Evo Arrows Helper.zip
+pause

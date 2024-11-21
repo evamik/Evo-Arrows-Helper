@@ -1,7 +1,7 @@
 from tkinter import Tk, Label, font as tkFont
 from ctypes import windll
-import state
-from controls import controls, get_current_menu, custom_names
+from utils import state
+from overlay.controls import controls, get_current_menu, custom_names
 
 overlay_params = {
     'x': 100,

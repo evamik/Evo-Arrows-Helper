@@ -1,7 +1,7 @@
-from fishing import toggle_fishing
-from imp2_arrows import toggle_imp2
-import state
-from fishing_modes import set_fishing_mode, get_fishing_mode, set_save_on_fishes_count, get_save_on_fishes_count
+from fishing.fishing import toggle_fishing, set_respawn_point, get_respawn_point
+from imp2.imp2_arrows import toggle_imp2
+from utils import state
+from fishing.fishing_modes import set_fishing_mode, get_fishing_mode, set_save_on_fishes_count, get_save_on_fishes_count
 from keyboard import unhook_all_hotkeys, add_hotkey
 
 # Define the main menu and submenus
@@ -16,6 +16,7 @@ controls = {
         'ctrl+f3': state.set_fishes_caught_session,
         'ctrl+f4': set_fishing_mode,  # Toggle fishing mode
         'ctrl+f5': set_save_on_fishes_count,  # Toggle save on fishes count
+        'ctrl+f6': set_respawn_point,  # Set respawn point
     },
     'imp2_menu': {
         'ctrl+f1': toggle_imp2,
@@ -30,6 +31,7 @@ custom_names = {
     'set_fishes_caught_session': lambda: "Reset Fishes Caught Session",
     'set_fishing_mode': lambda: f"Set Fishing Mode: {get_fishing_mode()}",
     'set_save_on_fishes_count': lambda: f"Set Save on Fishes Count: {get_save_on_fishes_count() if get_save_on_fishes_count() is not None else 'Disabled'}",
+    'set_respawn_point': lambda: f"Set Respawn Point ({get_respawn_point()})" if get_respawn_point() else "Set Respawn Point",
     'fishing_menu': lambda: "Fishing Menu",
     'imp2_menu': lambda: "Imp2 Menu",
     'main_menu': lambda: "Main Menu"
@@ -56,10 +58,7 @@ def set_hotkeys(menu):
                 add_hotkey(hotkey, lambda action=action: navigate_to(action))
             else:
                 add_hotkey(hotkey, action)
-    else:
-        print(f"Menu '{menu}' not found in controls.")
 
 def navigate_to(menu):
     set_current_menu(menu)
     set_hotkeys(menu)
-    print(f"Navigated to {menu}")

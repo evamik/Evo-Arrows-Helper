@@ -25,6 +25,8 @@ coordinates = {
         'fish_1': (1198, 911),
         'fish_2': (1198, 980),
         'hotbar_slot_1': (1400, 860),
+        'character_alive': (960, 897),
+        'player_portrait': (40, 80),
     },
     '1366x768': {
         'red': (338, 579),
@@ -52,17 +54,21 @@ coordinates = {
         'fish_1': (854, 647),
         'fish_2': (854, 696),
         'hotbar_slot_1': (990, 612),
+        'character_alive': (683, 639),
+        'player_portrait': (30, 60),
     }
 }
 
 sizes = {
     '1920x1080': {
         'fish_number_width': 24,
-        'fish_number_height': 20
+        'fish_number_height': 20,
+        'imp2_arrows_height': 27
     },
     '1366x768': {
         'fish_number_width': 18,
-        'fish_number_height': 14
+        'fish_number_height': 14,
+        'imp2_arrows_height': 27 # needs update
     }
 }
 

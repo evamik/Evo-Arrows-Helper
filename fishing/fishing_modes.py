@@ -1,5 +1,3 @@
-import state
-
 fishing_modes = [
     'Only Perfect',
     'Perfect+No Flying Wish Fish',

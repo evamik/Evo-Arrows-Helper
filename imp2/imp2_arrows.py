@@ -1,14 +1,19 @@
 from pyautogui import press, screenshot, sleep
-from constants import coordinates, colors, opposite_directions
-from state import set_imp2_enabled, get_imp2_enabled, get_resolution
+from utils.constants import coordinates, colors, sizes, opposite_directions
+from utils.state import set_imp2_enabled, get_imp2_enabled, get_resolution
 
 def is_color_matching(screenshot_img, coord, color):
     return screenshot_img.getpixel(coord) == color
 
 def check_arrow(screenshot_img, direction):
     resolution, _, _, _, _ = get_resolution()
+    imp2_arrows_height = sizes[resolution]['imp2_arrows_height']
+    
+    def check_line(y_offset):
+        return all(is_color_matching(screenshot_img, (coordinates[resolution][f'{direction}_yellow_{i}'][0], coordinates[resolution][f'{direction}_yellow_{i}'][1] + y_offset), colors['yellow']) for i in range(1, 5))
+    
     if is_color_matching(screenshot_img, coordinates[resolution]['red'], colors['red']):
-        if all(is_color_matching(screenshot_img, coordinates[resolution][f'{direction}_yellow_{i}'], colors['yellow']) for i in range(1, 5)):
+        if check_line(0) or check_line(imp2_arrows_height) or check_line(2 * imp2_arrows_height):
             press_arrows_and_clear(direction)
 
 def press_arrows_and_clear(direction, clear=True):

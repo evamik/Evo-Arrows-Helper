@@ -1,11 +1,11 @@
-from pyautogui import press, sleep, typewrite, screenshot as pyautogui_screenshot
+from pyautogui import press, sleep, typewrite, screenshot as pyautogui_screenshot, position, click, rightClick
 from threading import Thread
-from constants import coordinates, colors, sizes
-import state
+from utils.constants import coordinates, colors, sizes
+from utils import state
 from re import findall
 import logging
-from ocr_utils import extract_text_from_roi
-from fishing_modes import get_fishing_mode_params, get_save_on_fishes_count
+from utils.ocr_utils import extract_text_from_roi
+from fishing.fishing_modes import get_fishing_mode_params, get_save_on_fishes_count
 
 logging.getLogger('easyocr').setLevel(logging.ERROR)
 
@@ -14,6 +14,7 @@ fishing_loops = 0
 fishes_caught_postsave = 0
 fishes_caught_presave = 0
 max_possible_fishes = 0
+_respawn_point = None
 
 def is_color_matching(screenshot, coord, color):
     return screenshot.getpixel(coord) == color
@@ -30,7 +31,7 @@ def check_fishing_arrow(screenshot, direction):
                         sleep(1.5)
                     press_arrows_and_clear(direction)
                     return True
-    except KeyError:
+    except KeyError or AttributeError:
         return False
 
 def press_arrows_and_clear(direction, debug=False):
@@ -38,7 +39,7 @@ def press_arrows_and_clear(direction, debug=False):
     if debug: print(f"{direction.capitalize()} arrow pressed.")
 
 def check_and_press_fishing():
-    _, x, y, width, height = state.get_resolution()
+    resolution, x, y, width, height = state.get_resolution()
     screenshot = pyautogui_screenshot(region=(x, y, width, height))
     pressed = check_fishing_arrow(screenshot, 'down') or check_fishing_arrow(screenshot, 'up')    
     sleep(0.3)
@@ -59,15 +60,15 @@ def click_fishing_rod():
         press(fishing_rod_slot)
 
 def is_hotbar_slot_black():
-    _, x, y, width, height = state.get_resolution()
+    resolution, x, y, width, height = state.get_resolution()
     screenshot = pyautogui_screenshot(region=(x, y, width, height))
     try:
-        resolution, _, _, _, _ = state.get_resolution()
         hotbar_slot_coord = coordinates[resolution]['hotbar_slot_1']
+        character_alive_coord = coordinates[resolution]['character_alive']
     except KeyError:
         return False
     black_color = (0, 0, 0)
-    return is_color_matching(screenshot, hotbar_slot_coord, black_color)
+    return is_color_matching(screenshot, hotbar_slot_coord, black_color) and not is_color_matching(screenshot, character_alive_coord, black_color)
 
 def initialize_fishing_session():
     global fishes_caught_postsave, fishes_caught_presave, max_possible_fishes
@@ -101,6 +102,34 @@ def handle_fishing_score():
 def update_fishing_session_state():
     state.set_fishes_caught_session(fishes_caught_postsave + fishes_caught_presave)
 
+def set_respawn_point():
+    global _respawn_point
+    _respawn_point = position()
+
+def get_respawn_point():
+    return _respawn_point
+
+def handle_respawn():
+    global _respawn_point
+    if _respawn_point is None:
+        return
+    while not is_character_alive() and state.get_fishing_enabled():
+        resolution, _, _, _, _ = state.get_resolution()
+        click(coordinates[resolution]['player_portrait'])
+        sleep(1)
+    if state.get_fishing_enabled():
+        rightClick(_respawn_point)
+
+def is_character_alive():
+    resolution, x, y, width, height = state.get_resolution()
+    screenshot = pyautogui_screenshot(region=(x, y, width, height))
+    try:
+        character_alive_coord = coordinates[resolution]['character_alive']
+    except KeyError:
+        return False
+    black_color = (0, 0, 0)
+    return not is_color_matching(screenshot, character_alive_coord, black_color)
+
 def fishing_loop():
     initialize_fishing_session()
     while state.get_fishing_enabled():
@@ -108,6 +137,8 @@ def fishing_loop():
         get_fishes_count()
         if not state.is_warcraft_active():
             continue
+        if not is_character_alive():
+            handle_respawn()
         handle_fishing_rod_click()
         handle_fishing_score()
         update_fishing_session_state()  # Update fishing count after finishing the loop
@@ -119,7 +150,7 @@ def toggle_fishing_loop():
 
 def get_fish_count(i):
     try:
-        resolution, _, _, _, _ = state.get_resolution()
+        resolution, x, y, width, height = state.get_resolution()
         fish_x, fish_y = coordinates[resolution][i]
         fish_number_width = sizes[resolution]['fish_number_width']
         fish_number_height = sizes[resolution]['fish_number_height']
